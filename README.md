@@ -49,10 +49,14 @@ All codes are written in R, a freely downloadable software (see: https://www.r-p
 1. Download the following:
 * R software, a free software environment for statistical computing and graphics (https://www.r-project.org/);
 * Rstudio, a free and user-friendly integrated development environment(https://www.rstudio.com/products/rstudio/download/).
-2. Download this Github repository into your *Desktop*. 
+2. Download this Github repository onto your *Desktop*. You may do this by clicking on the green `Code` button on the right top hand corner of the page. In the dropdown menu, click on `Download Zip`. Unzip the folder named `covid-hcwcasecontrol-main` onto your *Desktop*.
 
 ### Preparing the data 
 1. Please request for a cleaned dataset for the data you have previously shared with the WHO on the Go.Data platform (contact Mo Yin at yinm@who.int). The dataset will be made available in `.csv` format. For data security purposes, this cannot be directly retrieved from this Github repository. 
-2. Save the dataset sent to you in the same folder as this Github repository on your *Desktop*. 
-3. Open the code `clean.data.R` in RStudio. Highlight all   
+2. Save the dataset sent to you in the `covid-hcwcasecontrol-main` folder on your *Desktop*. 
+3. Open the code `clean.data.R` in RStudio. Highlight all lines and click on `Run` on the right upper hand corcer of the screen. When this finishes, you will have a cleaned set of data saved as  `cleandata.Rdata` and a participant flow chart in the `covid-hcwcasecontrol-main` folder. 
+
+### Descriptive report 
+1. If you like to generate a descriptive report, open the code `descriptive.report.Rmd ` in the `covid-hcwcasecontrol-main` folder on your *Desktop* in RStudio. Click on the 'Knit' button on the top of the screen. When this finishes, you will have the report saved as a `.html` file in the `covid-hcwcasecontrol-main` folder.
+
 
