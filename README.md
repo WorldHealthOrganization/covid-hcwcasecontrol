@@ -45,12 +45,14 @@ All codes are written in R, a freely downloadable software (see: https://www.r-p
 
 # How to use this Github repository 
 
-### Preparing 
+### Download R 
+1. Download the following:
+* R software, a free software environment for statistical computing and graphics (https://www.r-project.org/);
+* Rstudio, a free and user-friendly integrated development environment(https://www.rstudio.com/products/rstudio/download/).
+2. Download this Github repository into your *Desktop*. 
 
 ### Preparing the data 
 1. Please request for a cleaned dataset for the data you have previously shared with the WHO on the Go.Data platform (contact Mo Yin at yinm@who.int). The dataset will be made available in `.csv` format. For data security purposes, this cannot be directly retrieved from this Github repository. 
-2. Download the following:
-* R software, a free software environment for statistical computing and graphics (https://www.r-project.org/),
-* Rstudio, a free and user-friendly integrated development environment(https://www.rstudio.com/products/rstudio/download/).
-3.  
+2. Save the dataset sent to you in the same folder as this Github repository on your *Desktop*. 
+3. Open the code `clean.data.R` in RStudio. Highlight all   
 
