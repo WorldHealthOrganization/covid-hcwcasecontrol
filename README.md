@@ -59,4 +59,8 @@ All codes are written in R, a freely downloadable software (see: https://www.r-p
 ### Descriptive report 
 1. If you like to generate a descriptive report, open the code `descriptive.report.Rmd ` in the `covid-hcwcasecontrol-main` folder on your *Desktop* in RStudio. Click on the 'Knit' button on the top of the screen. When this finishes, you will have the report saved as a `.html` file in the `covid-hcwcasecontrol-main` folder.
 
+### Analysis support 
+1. If you like support for statistical analysis, please review codes shared in `analysis.code.Rmd` for details on the selection of variables and models. Please note that this set of codes may not be kept up to date with the main analysis code used for the overall study. Please adopt these codes at your own discretion. The finalised analysis code will be available in this repository at the time of main publication. 
 
+# Contact 
+Please contact Mo Yin (email: yinm@who.int) for additional help if required.
