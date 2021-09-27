@@ -1,0 +1,252 @@
+---
+output: 
+  bookdown::html_document2
+knit: (function(inputFile, encoding) {rmarkdown::render(inputFile, encoding = encoding, output_file = paste0(substr(inputFile, 1, nchar(inputFile) - 4), Sys.Date(), '.html')) })
+---
+
+```{r, include=FALSE}
+# country name 
+country = 'ENTER YOUR COUNTRY/SITE HERE'
+```
+
+---
+title: "Assessment of risk factors for coronavirus disease 2019 (COVID-19) in health workers <br> A WHO Multi-centre study <br> Data summary report for `r paste(country)`"
+date: "`r Sys.Date()`"
+author: 
+---
+
+```{r setup, include=FALSE}
+
+rm(list = ls())
+
+# load libraries and cleaning functions
+path_to_functions <- here::here("~/Documents/nBox/git_projects/WHO_covid19_HCW_casecontrol/scripts")
+scripts_files <- dir(path_to_functions, pattern = ".R$", full.names=TRUE)
+for (file in scripts_files) source(file, local = TRUE)
+
+## load data
+load(paste0('~/Desktop/covid-hcwcasecontrol-main/cleandata.Rdata'))
+
+# set theme for plots 
+theme_set(theme_minimal())
+
+country = 'ENTER YOUR COUNTRY/SITE HERE'
+
+ppd = dat[which(dat$pp ==  1),]
+n_case = length(dat$init_inter_id[which(dat$case_control == 'CASE')])
+n_control = length(dat$init_inter_id[which(dat$case_control == 'CONTROL')])
+```
+
+# Introduction 
+The spread of SARS-CoV-2 is accompanied by uncertainty concerning its key epidemiological, clinical and virological characteristics, particularly its ability to spread in the human population and its virulence. Understanding SARS-CoV-2 infection among health workers and identifying the risk factors for adverse outcomes are important not only for characterizing virus transmission patterns and risk factors for infection, but also for preventing the future infection of health workers and patients, for informing and updating infection prevention and control (IPC) measures at health care facility and national levels, and for reducing secondary SARS-CoV-2 transmission within health care settings.
+
+The **"Assessment of risk factors for coronavirus disease 2019 (COVID-19) in health workers"** study led by the WHO has `r length(unique(dat$country.godata))` countries with over `r length(unique(dat$site.godata))` health facilities as study sites. In total, there were `r nrow(dat)` health workers who participated in the study. 
+
+This report summarizes the data collected from `r country` shared with the WHO.
+
+# Study participants
+
+`r country` has `r length(unique(dat$site.godata))` participating sites (see Figure \@ref(fig:studysites)), which contributed a total of `r nrow(dat)` participants (`r n_case` cases and `r n_control` controls) recruited between `r min(as.Date(substr(dat$init_form_date, 1, 10)), na.rm = T)` and `r max(as.Date(substr(dat$init_form_date, 1, 10)), na.rm = T)`. The number of participants enrolled from each study site is shown in Table \@ref(tab:participantpersite).
+
+```{r studysites, echo=FALSE, out.width = "100%", fig.align='center', fig.cap = "Locations of the participating sites."}
+# plot locations
+plot_sites(dat, zoom = 5)
+```
+
+```{r participantpersite, echo=FALSE}
+t = tab_enrolled(by.country = F, d = dat)
+caption(t) = "Entries by study site. Numbers reflected in 'Labeled as cases' and 'Labeled as controls' are retrieved from the initial investigator form, and should sum up to the total number of participants if the initial investigator forms are completed."
+t %>%
+  theme_basic() %>% 
+  set_width(1) %>%
+  set_caption_pos("bottom")
+```
+The following flow diagram describes the numbers of enrolled participants and reasons for exclusion from the main analysis. A participant is considered to be enrolled 'retrospectively' if the initial and follow-up interview dates are the same. Interview dates are considered erroneous if the first interview date is later than the second interview date.
+
+```{r flow, echo=FALSE, out.width = "60%", fig.align='center', fig.cap = "Analysed cohorts and reasons for exclusion."}
+# plot flow diagram 
+
+knitr::include_graphics("flow.png")
+
+```
+
+
+```{r, include=FALSE}
+
+init_int_dat = as.Date(substr(dat$init_form_date, 1, 10))
+init_sero_dat = as.Date(substr(dat$init_sero_collection_date, 1, 10))
+
+fu_int_dat = as.Date(substr(dat$fu_form_date, 1, 10))
+fu_sero_dat = as.Date(substr(dat$fu_sero_collection_date, 1, 10))
+
+init_sero_lag = summary(as.integer(init_sero_dat - init_int_dat))
+fu_sero_lag = summary(as.integer(fu_sero_dat - init_int_dat))
+int_lag = summary(as.integer(fu_int_dat - init_int_dat))
+
+```
+
+The mean time interval between the first and follow-up interviews is `r int_lag[['Median']]` days (IQR `r int_lag[['1st Qu.']]` to `r int_lag[['3rd Qu.']]` days).
+
+## Demographics 
+
+The demographics characteristics of the participants are shown below in Table 2.3.
+
+```{r demographics, echo=FALSE, warning=F, message=F, fig.align='center'} 
+ppd$hcw_role = as.factor(ppd$hcw_role)
+ppd$hcw_role = factor(ppd$hcw_role, c('MEDICAL DOCTOR', 'REGISTERED NURSE (OR EQUIVALENT)', 
+                                      'ASSISTANT NURSE, NURSE TECHNICIAN (OR EQUIVALENT)',
+                                      'NUTRITIONIST/DIETITIAN', 'PHYSICAL THERAPIST',
+                                      'PHLEBOTOMIST', 'RADIOLOGY / X-RAY TECHNICIAN',
+                                      'LABORATORY PERSONNEL', "ADMISSION/RECEPTION CLERK",
+                                      'ADMINISTRATION/CLERK', 'CLEANER', 'CATERING STAFF',
+                                      'OTHER'))
+ppd$education = as.factor(ppd$education)
+ppd$education = factor(ppd$education, c('TERTIARY/UNIVERSITY', 'SECONDARY', 'PRIMARY', 'NONE', 'PREFER NOT TO ANSWER'))
+
+label(ppd$sex) = 'SEX'
+label(ppd$age) = 'AGE'
+label(ppd$education) = 'EDUCATION'
+label(ppd$hcw_role) = 'ROLE'
+
+table1(~ sex + age + education + hcw_role | case_control, data = ppd, 
+       overall=F,
+       extra.col = list(`P-value`= pvalue))
+```
+<center>
+Table 2.3 Demographic characteristics of the participants 
+</center>
+
+## Exposure to SARS-COV-2 
+
+The types of exposures to SARS-COV-2 are detailed in Table 2.4 below. 
+
+```{r exposure, echo=FALSE, warning=F, message=F, fig.align='center'} 
+ppd$covid_specific_care = as.factor(ppd$covid_specific_care)
+ppd$covid_specific_care = factor(ppd$covid_specific_care, levels = c('YES', 'NO',
+                                                                     'THERE ARE NO COVID-19 DEDICATED STAFF IN MY FACILITY'))
+
+ppd$contact_covid_outside = as.factor(ppd$contact_covid_outside)
+ppd$contact_covid_outside = factor(ppd$contact_covid_outside, levels = c('YES', 'NO', 'NOT SURE'))
+
+ppd$public_transport = as.factor(ppd$public_transport)
+ppd$public_transport = factor(ppd$public_transport, 
+                              toupper(c('Most days (≥8 days)', 'Some days (4-7 days)', 
+                                        'Few days (≤3 days)', 'Not used public transport')))
+
+ppd$contact_social_outside = as.factor(ppd$contact_social_outside)
+ppd$contact_social_outside = factor(ppd$contact_social_outside, toupper(c('Most days (≥8 days)', 'Some days (4-7 days)', 
+                                                                          'Few days (≤3 days)', 'Not had any other social interaction')))
+
+ppd$contact_1m = as.factor(ppd$contact_1m)
+ppd$contact_1m = factor(ppd$contact_1m , levels = c('YES', 'NO', 'UNKNOWN'))
+
+ppd$contact_1m_prolong15min[is.na(ppd$contact_1m_prolong15min)] = 'NO'
+ppd$contact_1m_prolong15min = as.factor(ppd$contact_1m_prolong15min)
+ppd$contact_1m_prolong15min = factor(ppd$contact_1m_prolong15min, levels = c('YES', 'NO', 'UNKNOWN'))
+
+ppd$contact_1m_aerosol[is.na(ppd$contact_1m_aerosol)] = 'NO'
+ppd$contact_1m_aerosol = as.factor(ppd$contact_1m_aerosol)
+ppd$contact_1m_aerosol = factor(ppd$contact_1m_aerosol, levels = c('YES', 'NO', 'UNKNOWN'))
+
+ppd$contact_mat[is.na(ppd$contact_mat)] = 'NO'
+ppd$contact_mat = as.factor(ppd$contact_mat)
+ppd$contact_mat = factor(ppd$contact_mat, levels = c('YES', 'NO', 'UNKNOWN'))
+
+ppd$contact_mat_bodyfld[is.na(ppd$contact_mat_bodyfld)] = 'NO'
+ppd$contact_mat_bodyfld = as.factor(ppd$contact_mat_bodyfld)
+ppd$contact_mat_bodyfld = factor(ppd$contact_mat_bodyfld, levels = c('YES', 'NO', 'UNKNOWN'))
+
+ppd$contact_1m_bodyfld[is.na(ppd$contact_1m_bodyfld)] = 'NO'
+ppd$contact_1m_bodyfld = as.factor(ppd$contact_1m_bodyfld)
+ppd$contact_1m_bodyfld = factor(ppd$contact_1m_bodyfld, levels = c('YES', 'NO', 'UNKNOWN'))
+
+ppd$contact_surface = as.factor(ppd$contact_surface)
+ppd$contact_surface = factor(ppd$contact_surface , levels = c('YES', 'NO', 'UNKNOWN'))
+
+label(ppd$covid_specific_care) = 'Provides specific care to COVID-19 patients'
+label(ppd$covid_specific_care_days) = 'Number of days providing specific care to COVID-19 patients'
+label(ppd$contact_1m) = 'Exposed to COVID-19 patients within 1 meter distance'
+label(ppd$contact_1m_prolong15min) = 'Exposed to COVID-19 patients within 1 meter distance for more than 15 min'
+label(ppd$contact_1m_aerosol) = 'Exposed to COVID-19 patients within 1 meter distance with aerosol procedure'
+label(ppd$contact_1m_bodyfld) = 'Exposed to COVID-19 patients within 1 meter distance and body fluid'
+label(ppd$contact_mat) = "Exposed to COVID-19 patients' materials"
+label(ppd$contact_mat_bodyfld) = "Exposed to COVID-19 patients' materials soiled with body fluid"
+label(ppd$contact_surface) = "Exposed to surfaces around COVID-19 patients"
+label(ppd$contact_covid_outside) = 'Contact with SARS-COV-2 outside of work in the past 14 days'
+label(ppd$public_transport) = 'Used public transport in the past 14 days'
+label(ppd$contact_social_outside) = 'Had social contact outside of work in the past 14 days'
+
+table1(~ covid_specific_care + covid_specific_care_days + contact_1m + contact_1m_prolong15min + contact_1m_aerosol +  + contact_1m_bodyfld + contact_mat + contact_mat_bodyfld + contact_surface + contact_covid_outside + contact_social_outside + public_transport | case_control, data = ppd, 
+       overall=F,
+       extra.col = list(`P-value`= pvalue))
+```
+<center>
+Table 2.4 Types of exposures to SARS-COV-2. 
+</center>
+
+## Infection prevention and control (IPC) training and personal IPC practices 
+
+Infection prevention and control (IPC) training and personal IPC practices are detailed in Table 2.5 below. 
+
+```{r personal, echo=FALSE, warning=F, message=F, fig.align='center'} 
+ppd$covid_specific_training = as.factor(ppd$covid_specific_training)
+ppd$covid_specific_training = factor(ppd$covid_specific_training, levels = c('YES', 'NO',
+                                                                             'NOT SURE'))
+
+ppd$ipc_training_latest = as.factor(ppd$ipc_training_latest)
+ppd$ipc_training_latest = factor(ppd$ipc_training_latest, levels = c('I REMEMBER THE ppdE', 'FORGOTTEN/NOT SURE', 'I DON’T KNOW WHAT IPC STANDARD PRECAUTIONS ARE'))
+
+ppd$ipc_training_hours = as.factor(ppd$ipc_training_hours)
+ppd$ipc_training_hours = factor(ppd$ipc_training_hours, levels = c('MORE THAN 2 HOURS', 'LESS THAN 2 HOURS', 'I DON’T KNOW WHAT IPC STANDARD PRECAUTIONS ARE'))
+
+ppd$ipc_training_hours = as.factor(ppd$ipc_training_hours)
+ppd$ipc_training_hours = factor(ppd$ipc_training_hours, levels = c('MORE THAN 2 HOURS', 'LESS THAN 2 HOURS', 'I DON’T KNOW WHAT IPC STANDARD PRECAUTIONS ARE'))
+
+ppd$hh_moments_practice = as.factor(ppd$hh_moments_practice)
+ppd$hh_moments_practice = factor(ppd$hh_moments_practice, levels = c("ALWAYS, AS RECOMMENDED", "MOST OF THE TIME", "OCCASIONALLY", "RARELY", "NEVER"))
+
+ppd$hh_pt_bf = as.factor(ppd$hh_pt_bf)
+ppd$hh_pt_bf = factor(ppd$hh_pt_bf, levels = c("ALWAYS, AS RECOMMENDED", "MOST OF THE TIME", "OCCASIONALLY", "RARELY", "NEVER"))
+
+ppd$hh_procedure_bf = as.factor(ppd$hh_procedure_bf)
+ppd$hh_procedure_bf = factor(ppd$hh_procedure_bf, levels = c("ALWAYS, AS RECOMMENDED", "MOST OF THE TIME", "OCCASIONALLY", "RARELY", "NEVER"))
+
+ppd$hh_pt_aft = as.factor(ppd$hh_pt_aft)
+ppd$hh_pt_aft = factor(ppd$hh_pt_aft, levels = c("ALWAYS, AS RECOMMENDED", "MOST OF THE TIME", "OCCASIONALLY", "RARELY", "NEVER"))
+
+ppd$hh_bodyfld_aft = as.factor(ppd$hh_bodyfld_aft)
+ppd$hh_bodyfld_aft = factor(ppd$hh_bodyfld_aft, levels = c("ALWAYS, AS RECOMMENDED", "MOST OF THE TIME", "OCCASIONALLY", "RARELY", "NEVER"))
+
+ppd$hh_env_aft = as.factor(ppd$hh_env_aft)
+ppd$hh_env_aft = factor(ppd$hh_env_aft, levels = c("ALWAYS, AS RECOMMENDED", "MOST OF THE TIME", "OCCASIONALLY", "RARELY", "NEVER"))
+
+ppd$ipc_pt_practice = as.factor(ppd$ipc_pt_practice)
+ppd$ipc_pt_practice = factor(ppd$ipc_pt_practice, levels = c("ALWAYS, AS RECOMMENDED", "MOST OF THE TIME", "OCCASIONALLY", "RARELY", "NEVER"))
+
+ppd$hh_moments_aware = as.factor(ppd$hh_moments_aware)
+ppd$hh_moments_aware = factor(ppd$hh_moments_aware, levels = c("YES, ALL 5", "YES, ALL 4", "YES, ALL 3", "YES, ALL 6", "I DON'T KNOW THEM"))
+
+ppd$ppe = as.factor(ppd$ppe)
+ppd$ppe = factor(ppd$ppe, levels = c("ALWAYS, ACCORDING TO THE RISK ASSESSMENT MOST OF THE TIME", "MOST OF THE TIME, ACCORDING TO THE RISK ASSESSMENT", "OCCASIONALLY", "RARELY", "NEVER"))
+
+label(ppd$covid_specific_training) = 'Received IPC training specific to COVID-19'
+label(ppd$ipc_training_latest) = 'The most recent IPC training'
+label(ppd$ipc_training_hours) = 'Hours of IPC training'
+label(ppd$hh_moments_aware) = 'Aware of hand hygiene moments'
+label(ppd$hh_moments_practice) = 'Practice of hand hygiene moments'
+label(ppd$ppe) = 'Wear PPE when indicated'
+label(ppd$hh_env_aft) = "Hand hygiene after contacting patients' environment"
+label(ppd$hh_pt_aft) = 'Hand hygiene after contacting patients'
+label(ppd$hh_pt_bf) = 'Hand hygiene before contacting patients'
+label(ppd$hh_procedure_bf) = 'Hand hygiene before carrying out procedures'
+label(ppd$hh_bodyfld_aft) = 'Hand hygiene after contacting bodily fluids'
+label(ppd$ipc_pt_practice) = 'Follow IPC standard precautions when in contact with patients'
+
+table1(~ covid_specific_training + ipc_training_latest + ipc_training_hours + ipc_pt_practice + hh_moments_aware + hh_moments_practice + hh_pt_bf + hh_pt_aft + hh_env_aft + hh_procedure_bf + hh_bodyfld_aft + ppe | case_control, data = ppd, 
+       overall=F,
+       extra.col = list(`P-value`= pvalue))
+```
+<center>
+Table 2.5 Infection prevention and control (IPC) training and personal IPC practices. 
+</center>
+

@@ -450,8 +450,103 @@ dat$contact_social_outside_cat = 'NOT HAD ANY OTHER SOCIAL INTERACTION'
 dat$contact_social_outside_cat[dat$contact_social_outside != 'NOT HAD ANY OTHER SOCIAL INTERACTION'] = 'HAD OTHER SOCIAL INTERACTION'
 dat = clean_col(dat = dat, lvl = c('HAD OTHER SOCIAL INTERACTION', 'NOT HAD ANY OTHER SOCIAL INTERACTION'))
 
-
-# dat[,c('case_control', 'cases.pp', 'control.pp', 'init_sero_result', 'fu_sero_result')]
-
 save(dat, file = paste0('~/Desktop/covid-hcwcasecontrol-main/cleandata.Rdata'))
 
+
+#########################################################################
+### PLOT FLOW DIAGRAM
+##########################################################################
+
+library(DiagrammeRsvg)
+library(magrittr)
+library(rsvg)
+
+## n enrolled 
+n_total = dim(dat)[1]
+n_case_total = count_n(d = dat, outcome = 'total', participant.type = 'CASE')
+n_control_total = count_n(d = dat, outcome = 'total', participant.type = 'CONTROL')
+
+## excluded 
+n_case_vacc = count_n(d = dat, outcome = 'vaccine2wks', participant.type = 'CASE')
+n_case_nointer = count_n(d = dat, outcome = 'interviewmiss', participant.type = 'CASE')
+n_control_vacc = count_n(d = dat, outcome = 'vaccine2wks', participant.type = 'CONTROL')
+n_control_nointer = count_n(d = dat, outcome = 'interviewmiss', participant.type = 'CONTROL')
+n_control_seropos = count_n(d = dat, outcome = 'serologypositive', participant.type = 'CONTROL')
+
+## sensitivity analysis 
+n_case_vaccmiss = count_n(d = dat, outcome = 'vaccinemiss', participant.type = 'CASE')
+n_case_viro2wks = count_n(d = dat, outcome = 'virology2wks', participant.type = 'CASE')
+n_case_viromiss = count_n(d = dat, outcome = 'virologymiss', participant.type = 'CASE')
+n_control_vaccmiss = count_n(d = dat, outcome = 'vaccinemiss', participant.type = 'CONTROL')
+n_control_seromiss = count_n(d = dat, outcome = 'serologymiss', participant.type = 'CONTROL')
+n_control_seroincon = count_n(d = dat, outcome = 'serologyinconclusive', participant.type = 'CONTROL')
+
+n_case_pp = count_n(d = dat, outcome = 'pp', participant.type = 'CASE')
+n_control_pp = count_n(d = dat, outcome = 'pp', participant.type = 'CONTROL')
+
+g = "
+digraph nicegraph {
+
+graph[fontsize = 9]
+
+
+  # node attributes
+  node [shape = rectangle,
+        fontname = Helvetica,
+        color = grey80,
+        style = filled, 
+        width = 3,
+        height = 2
+        fixedsize = true]
+  
+  # node definitions with substituted label text
+      tab1 [label = '@@1']
+      tab2 [label = '@@2']
+      tab3 [label = '@@3']
+      tab4 [label = '@@4']
+      tab5 [label = '@@5']
+      tab6 [label = '@@6']
+      tab7 [label = '@@7']
+      tab8 [label = '@@8']
+      
+      1 [label = '', width = 0, height = 0]
+      2 [label = '', width = 0, height = 0]
+      3 [label = '', width = 0, height = 0]
+      4 [label = '', width = 0, height = 0]
+      
+{rank = same; tab1; tab2}
+{rank = same; 1; 2; tab3; tab4}
+{rank = same; 3; 4; tab5; tab6}
+{rank = same; tab7; tab8}
+
+  # edge attributes
+  edge [color = '#C9C9EE']
+
+  # node attributes
+  
+  node [shape = rectangle]
+    tab1 -> 1 [arrowsize = 0]
+    1 -> tab3 
+    1 -> 3 [arrowsize = 0]
+    3 -> tab5
+    3 -> tab7
+    
+    tab2 -> 2 [arrowsize = 0]
+    2 -> tab4
+    2 -> 4 [arrowsize = 0]
+    4 -> tab6
+    4 -> tab8 
+}
+
+      [1]: paste0('Cases enrolled', '\\n ', '(n = ', n_case_total, ')')
+      [2]: paste0('Controls enrolled', '\\n ', '(n = ', n_control_total, ')')
+      [3]: paste0('Excluded', '\\n ', 'Vaccined >2 weeks before', '\\n ', 'the first interview', '\\n ', '(n = ', n_case_vacc, ')', '\\n ', 'Missing interview', '\\n ', '(n = ', n_case_nointer, ')')
+      [4]: paste0('Excluded', '\\n ', 'Vaccined >2 weeks before', '\\n ', 'the first interview', '\\n ', '(n = ', n_control_vacc, ')', '\\n ', 'Missing interview', '\\n ', '(n = ', n_control_nointer, ')', '\\n ', 'Positive serology', '\\n ', '(n = ',n_control_seropos, ')')
+      [5]: paste0('Sensitivity analysis', '\\n ', 'Missing vaccination', '\\n ', '(n = ', n_case_vaccmiss, ')', '\\n ', 'PCR >2 weeks before', '\\n ', 'the first interview', '\\n ', '(n = ', n_case_viro2wks, ')', '\\n ', 'Missing PCR', '\\n ', '(n = ', n_case_viromiss, ')')
+      [6]: paste0('Sensitivity analysis', '\\n ', 'Missing vaccination', '\\n ', '(n = ', n_control_vaccmiss, ')', '\\n ', 'Missing serology', '\\n ', '(n = ', n_control_seromiss, ')', '\\n ', 'Inconclusive serology', '\\n ', '(n = ', n_control_seroincon, ')')
+      [7]: paste0('Cases main analysis', '\\n ', '(n = ', n_case_pp, ')')
+      [8]: paste0('Controls main analysis', '\\n ', '(n = ', n_control_pp, ')')
+      
+"
+grViz(g) %>%
+  export_svg %>% charToRaw %>% rsvg_png("flow.png")
