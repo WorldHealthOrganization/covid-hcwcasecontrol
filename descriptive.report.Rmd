@@ -20,7 +20,7 @@ author:
 rm(list = ls())
 
 # load libraries and cleaning functions
-path_to_functions <- here::here("~/Documents/nBox/git_projects/WHO_covid19_HCW_casecontrol/scripts")
+path_to_functions <- here::here("~/Desktop/covid-hcwcasecontrol-main/scripts")
 scripts_files <- dir(path_to_functions, pattern = ".R$", full.names=TRUE)
 for (file in scripts_files) source(file, local = TRUE)
 
