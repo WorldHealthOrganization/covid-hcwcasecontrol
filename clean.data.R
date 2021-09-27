@@ -5,6 +5,8 @@
 
 rm(list = ls())
 
+setwd('~/Desktop/covid-hcwcasecontrol-main/')
+
 # load raw data
 ## NOTE: check pathway is correct
 dat = read.csv('~/Desktop/covid-hcwcasecontrol-main/rawdata.csv')
@@ -450,7 +452,7 @@ dat$contact_social_outside_cat = 'NOT HAD ANY OTHER SOCIAL INTERACTION'
 dat$contact_social_outside_cat[dat$contact_social_outside != 'NOT HAD ANY OTHER SOCIAL INTERACTION'] = 'HAD OTHER SOCIAL INTERACTION'
 dat = clean_col(dat = dat, lvl = c('HAD OTHER SOCIAL INTERACTION', 'NOT HAD ANY OTHER SOCIAL INTERACTION'))
 
-save(dat, file = paste0('~/Desktop/covid-hcwcasecontrol-main/cleandata.Rdata'))
+save(dat, file = 'cleandata.Rdata')
 
 
 #########################################################################
